@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#121212">
+    <title>Contador de Publicações</title>
+    <style>
+        :root {
+            --bg: #121212;
+            --card: #1e1e1e;
+            --text: #ffffff;
+            
+            /* CORES JW */
+            --jw-blue: #4a6da7;       /* Azul Oficial */
+            --jw-blue-light: #7a9ccf; /* Azul mais claro para detalhes no fundo escuro */
+            
+            --danger: #ef5350;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0; padding: 0;
+            user-select: none; touch-action: manipulation;
+            padding-bottom: 90px; /* Espaço para o rodapé */
+        }
+
+        /* --- Header & Tabs --- */
+        .header {
+            background: #1a1a1a;
+            padding: 15px 15px 0 15px;
+            position: sticky; top: 0; z-index: 50;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            border-bottom: 2px solid var(--jw-blue);
+        }
+
+        .title-row {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;
+        }
+        h1 { margin: 0; font-size: 1.3rem; color: var(--jw-blue-light); font-weight: bold; }
+
+        .btn-add-top {
+            background: transparent;
+            border: 1px solid var(--jw-blue);
+            color: var(--jw-blue-light);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .tabs { display: flex; gap: 5px; }
+        .tab {
+            flex: 1; padding: 12px; background: #2c2c2c; border: none;
+            color: #888; font-weight: bold; border-radius: 8px 8px 0 0;
+            cursor: pointer; transition: 0.2s;
+            font-size: 1rem;
+        }
+        .tab.active {
+            background: var(--jw-blue);
+            color: white;
+        }
+
+        /* --- View Containers --- */
+        .view { display: none; padding: 15px; }
+        .view.active { display: block; }
+
+        /* --- Grid do Contador --- */
+        .grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px;
+        }
+        .card {
+            background-color: var(--card); border-radius: 12px; height: 210px;
+            display: flex; flex-direction: column; position: relative;
+            border: 1px solid #333; overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .click-area {
+            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: pointer;
+        }
+        .click-area:active { background-color: #2a2a2a; }
+        
+        .label { 
+            font-size: 0.9rem; color: #aaa; text-transform: uppercase; 
+            font-weight: bold; letter-spacing: 1px; margin-bottom: 5px;
+        }
+        .num-display {
+            font-size: 4.5rem; font-weight: bold; color: white;
+            z-index: 10; padding: 0 10px; border-radius: 10px;
+            font-variant-numeric: tabular-nums;
+        }
+        /* Efeito ao tocar no número */
+        .num-display:active { color: var(--jw-blue-light); }
+
+        .controls { display: flex; height: 50px; border-top: 1px solid #333; }
+        .btn-ctrl { flex: 1; background: transparent; border: none; color: #777; font-size: 1.5rem; border-right: 1px solid #333; }
+        .btn-ctrl:last-child { border-right: none; }
+        .btn-ctrl:active { background: #333; color: white; }
+        .btn-del-item { color: var(--danger); }
+
+        /* --- Histórico Styles --- */
+        .history-list { display: flex; flex-direction: column; gap: 15px; }
+        .history-item {
+            background: var(--card); border-radius: 10px; padding: 15px;
+            border-left: 5px solid var(--jw-blue); /* Borda Azul JW */
+        }
+        .hist-date { 
+            font-weight: bold; font-size: 1.1rem; color: var(--jw-blue-light); 
+            margin-bottom: 10px; display: flex; justify-content: space-between;
+        }
+        .hist-details { font-size: 0.95rem; color: #ddd; line-height: 1.6; }
+        .hist-total { margin-top: 10px; padding-top: 10px; border-top: 1px solid #333; font-weight: bold; text-align: right; color: white; }
+        .btn-del-hist { background: none; border: none; color: #777; cursor: pointer; font-size: 1.1rem; }
+        .btn-del-hist:hover { color: var(--danger); }
+
+        /* --- Footer Flutuante --- */
+        .footer {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 10px; z-index: 100; width: 90%; max-width: 400px;
+        }
+        
+        .total-badge {
+            flex: 1; background: #222; padding: 12px; border-radius: 30px; 
+            border: 1px solid #444; color: white; font-weight: bold; 
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        .btn-save {
+            background: var(--jw-blue); color: white; border: none; padding: 12px 25px;
+            border-radius: 30px; font-weight: bold; font-size: 1rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5); cursor: pointer;
+            white-space: nowrap; flex: 1;
+        }
+        .btn-save:active { background: #3a5685; }
+
+        /* --- Modal Numpad --- */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 200; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .numpad-box { background: #222; padding: 20px; border-radius: 20px; width: 320px; border: 1px solid #444; }
+        .screen { background: black; color: white; font-size: 3rem; text-align: right; padding: 15px; margin-bottom: 15px; border-radius: 10px; border: 1px solid #333; }
+        .keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .key { padding: 15px; font-size: 1.5rem; background: #333; border: none; color: white; border-radius: 8px; }
+        .key:active { background: #444; }
+        .key-ok { background: var(--jw-blue); color: white; grid-column: span 3; font-weight: bold; }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="title-row">
+            <h1>Contador de Publicações</h1>
+            <button class="btn-add-top" onclick="addItem()">+ Novo Item</button>
+        </div>
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('counter')">Contador</button>
+            <button class="tab" onclick="switchTab('history')">Histórico</button>
+        </div>
+    </div>
+
+    <div id="view-counter" class="view active">
+        <div id="grid" class="grid"></div>
+    </div>
+
+    <div id="view-history" class="view">
+        <div id="historyList" class="history-list">
+            </div>
+    </div>
+
+    <div class="footer" id="footerControls">
+        <div class="total-badge">
+            Total: <span id="grandTotal" style="color:var(--jw-blue-light); font-size:1.2rem">0</span>
+        </div>
+        <button class="btn-save" onclick="saveToHistory()">💾 Salvar Dia</button>
+    </div>
+
+    <div id="modal" class="modal" onclick="if(event.target===this) closeModal()">
+        <div class="numpad-box">
+            <div style="color:#aaa; margin-bottom:5px; text-align:center;">Digite a quantidade:</div>
+            <div id="numScreen" class="screen">0</div>
+            <div class="keys">
+                <button class="key" onclick="pk(1)">1</button><button class="key" onclick="pk(2)">2</button><button class="key" onclick="pk(3)">3</button>
+                <button class="key" onclick="pk(4)">4</button><button class="key" onclick="pk(5)">5</button><button class="key" onclick="pk(6)">6</button>
+                <button class="key" onclick="pk(7)">7</button><button class="key" onclick="pk(8)">8</button><button class="key" onclick="pk(9)">9</button>
+                <button class="key" style="color:var(--danger)" onclick="pk('C')">C</button><button class="key" onclick="pk(0)">0</button><button class="key" onclick="pk('B')">⌫</button>
+                <button class="key key-ok" onclick="saveVal()">CONFIRMAR</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Gerenciamento de Dados ---
+        let state = JSON.parse(localStorage.getItem('jwCounter_v12')) || {
+            current: [
+                { id: 1, name: 'Revistas', count: 0 },
+                { id: 2, name: 'Folhetos', count: 0 }
+            ],
+            history: []
+        };
+        
+        let activeEditId = null; let tempVal = "";
+
+        function save() {
+            localStorage.setItem('jwCounter_v12', JSON.stringify(state));
+            renderCounter();
+            renderHistory();
+        }
+
+        // --- Navegação ---
+        function switchTab(tab) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            
+            document.getElementById(`view-${tab}`).classList.add('active');
+            document.getElementById('footerControls').style.display = tab === 'counter' ? 'flex' : 'none';
+            
+            const btn = document.querySelectorAll('.tab');
+            if(tab === 'counter') btn[0].classList.add('active');
+            else btn[1].classList.add('active');
+        }
+
+        // --- Renderização do Contador ---
+        function renderCounter() {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            let total = 0;
+
+            state.current.forEach(i => {
+                total += i.count;
+                const div = document.createElement('div');
+                div.className = 'card';
+                div.innerHTML = `
+                    <div class="click-area" onclick="plusOne(${i.id})">
+                        <span class="label">${i.name}</span>
+                        <div class="num-display" onclick="openPad(${i.id}, event)">${i.count}</div>
+                    </div>
+                    <div class="controls">
+                        <button class="btn-ctrl" onclick="plusOne(${i.id}, -1)">−</button>
+                        <button class="btn-ctrl btn-del-item" onclick="delItem(${i.id})">×</button>
+                    </div>
+                `;
+                grid.appendChild(div);
+            });
+            document.getElementById('grandTotal').innerText = total;
+        }
+
+        // --- Renderização do Histórico ---
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            list.innerHTML = '';
+            
+            if (state.history.length === 0) {
+                list.innerHTML = '<div style="text-align:center; color:#555; margin-top:50px;">Nenhum registro no histórico.</div>';
+                return;
+            }
+
+            state.history.slice().reverse().forEach((entry, index) => {
+                const originalIndex = state.history.length - 1 - index;
+                
+                let details = '';
+                entry.items.forEach(item => {
+                    if(item.count > 0) details += `• ${item.name}: <b>${item.count}</b><br>`;
+                });
+
+                const card = document.createElement('div');
+                card.className = 'history-item';
+                card.innerHTML = `
+                    <div class="hist-date">
+                        <span>📅 ${entry.date}</span>
+                        <button class="btn-del-hist" onclick="deleteHistory(${originalIndex})">🗑️</button>
+                    </div>
+                    <div class="hist-details">${details || 'Nenhum item marcado.'}</div>
+                    <div class="hist-total">Total do dia: ${entry.total}</div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        // --- Lógica de Contagem ---
+        function plusOne(id, delta=1) {
+            const item = state.current.find(i => i.id === id);
+            if(item) {
+                item.count += delta;
+                if(item.count < 0) item.count = 0;
+                if(delta > 0 && navigator.vibrate) navigator.vibrate(40);
+                save();
+            }
+        }
+
+        function addItem() {
+            const n = prompt("Nome do novo item:");
+            if(n) { state.current.push({id: Date.now(), name: n, count: 0}); save(); }
+        }
+
+        function delItem(id) {
+            if(confirm("Remover este contador da tela?")) {
+                state.current = state.current.filter(i => i.id !== id);
+                save();
+            }
+        }
+
+        // --- Lógica de Histórico (Salvar Dia) ---
+        function saveToHistory() {
+            const total = state.current.reduce((acc, cur) => acc + cur.count, 0);
+            
+            if(total === 0) {
+                alert("O contador está zerado.");
+                return;
+            }
+
+            if(confirm("Salvar contagem no histórico e ZERAR para amanhã?")) {
+                const today = new Date().toLocaleString('pt-BR');
+                const record = {
+                    date: today,
+                    total: total,
+                    items: JSON.parse(JSON.stringify(state.current))
+                };
+
+                state.history.push(record);
+                state.current.forEach(i => i.count = 0); // Zera
+                
+                save();
+                switchTab('history');
+            }
+        }
+
+        function deleteHistory(index) {
+            if(confirm("Apagar este registro do histórico?")) {
+                state.history.splice(index, 1);
+                save();
+            }
+        }
+
+        // --- Teclado Numérico ---
+        function openPad(id, e) {
+            e.stopPropagation();
+            activeEditId = id;
+            tempVal = state.current.find(i=>i.id===id).count.toString();
+            document.getElementById('numScreen').innerText = tempVal;
+            document.getElementById('modal').style.display = 'flex';
+        }
+        function closeModal() { document.getElementById('modal').style.display = 'none'; }
+        function pk(k) {
+            if(k==='C') tempVal='0'; else if(k==='B') { tempVal=tempVal.slice(0,-1); if(tempVal==='') tempVal='0'; }
+            else { if(tempVal==='0') tempVal=k.toString(); else tempVal+=k.toString(); }
+            document.getElementById('numScreen').innerText = tempVal;
+        }
+        function saveVal() {
+            const item = state.current.find(i=>i.id===activeEditId);
+            if(item) { item.count = parseInt(tempVal); save(); }
+            closeModal();
+        }
+
+        // Init
+        renderCounter();
+        renderHistory();
+    </script>
+</body>
+</html>
