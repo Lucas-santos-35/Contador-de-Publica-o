@@ -1,38 +1,23 @@
 <!DOCTYPE html>
-<html lang="pt-PT">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
-    <title>Contador JW</title>
-
     <meta name="theme-color" content="#1a1a1a">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Contador JW">
 
-    <link rel="manifest" href='data:application/manifest+json;charset=utf-8,{
-        "name": "Contador de Publicações",
-        "short_name": "Contador JW",
-        "start_url": ".",
-        "display": "standalone",
-        "background_color": "#121212",
-        "theme_color": "#4a6da7",
-        "orientation": "portrait",
-        "icons": [
-            {
-                "src": "https://cdn-icons-png.flaticon.com/512/7604/7604010.png",
-                "sizes": "192x192",
-                "type": "image/png"
-            },
-            {
-                "src": "https://cdn-icons-png.flaticon.com/512/7604/7604010.png",
-                "sizes": "512x512",
-                "type": "image/png"
-            }
-        ]
-    }'>
+    <link rel="manifest" href="./manifest.json">
+    
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/7604/7604010.png">
+
+    <title>Contador JW</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
         :root {
@@ -47,22 +32,21 @@
         body {
             background-color: var(--bg);
             color: var(--text);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: 'Roboto', sans-serif;
             margin: 0; padding: 0;
             user-select: none; touch-action: manipulation;
             padding-bottom: 90px;
-            /* Garante que o app ocupe 100% da altura */
             min-height: 100vh;
         }
 
-        /* Header */
+        /* --- Header --- */
         .header {
             background: #1a1a1a;
             padding: 15px 15px 0 15px;
             position: sticky; top: 0; z-index: 50;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
             border-bottom: 2px solid var(--jw-blue);
-            padding-top: env(safe-area-inset-top); /* Respeita o "notch" */
+            padding-top: env(safe-area-inset-top);
         }
 
         .title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
@@ -82,10 +66,11 @@
         }
         .tab.active { background: var(--jw-blue); color: white; }
 
+        /* --- Views --- */
         .view { display: none; padding: 15px; }
         .view.active { display: block; }
 
-        /* Grid */
+        /* --- Grid Contador --- */
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
         .card {
             background-color: var(--card); border-radius: 12px; height: 210px;
@@ -110,7 +95,7 @@
         .btn-ctrl:active { background: #333; color: white; }
         .btn-del-item { color: var(--danger); }
 
-        /* Histórico */
+        /* --- Histórico --- */
         .history-list { display: flex; flex-direction: column; gap: 15px; }
         .history-item {
             background: var(--card); border-radius: 10px; padding: 15px;
@@ -121,7 +106,7 @@
         .hist-total { margin-top: 10px; padding-top: 10px; border-top: 1px solid #333; font-weight: bold; text-align: right; color: white; }
         .btn-del-hist { background: none; border: none; color: #777; cursor: pointer; font-size: 1.1rem; }
 
-        /* Footer */
+        /* --- Footer --- */
         .footer {
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
             display: flex; gap: 10px; z-index: 100; width: 90%; max-width: 400px;
@@ -139,13 +124,20 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.5); cursor: pointer; white-space: nowrap; flex: 1;
         }
 
-        /* Modal */
+        /* --- Modal & PDF Template --- */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 200; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .numpad-box { background: #222; padding: 20px; border-radius: 20px; width: 320px; border: 1px solid #444; }
         .screen { background: black; color: white; font-size: 3rem; text-align: right; padding: 15px; margin-bottom: 15px; border-radius: 10px; border: 1px solid #333; }
         .keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
         .key { padding: 15px; font-size: 1.5rem; background: #333; border: none; color: white; border-radius: 8px; }
+        .key:active { background: #444; }
         .key-ok { background: var(--jw-blue); color: white; grid-column: span 3; font-weight: bold; }
+
+        #pdf-template { display: none; padding: 40px; font-family: 'Roboto', Arial, sans-serif; color: #333; }
+        .pdf-header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid var(--jw-blue); padding-bottom: 20px;}
+        .pdf-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .pdf-table th { text-align: left; background: #f0f4f8; padding: 12px; color: var(--jw-blue); font-weight: 700; }
+        .pdf-table td { padding: 12px; border-bottom: 1px solid #eee; }
     </style>
 </head>
 <body>
@@ -153,7 +145,10 @@
     <div class="header">
         <div class="title-row">
             <h1>Contador JW</h1>
-            <button class="btn-add-top" onclick="addItem()">+ Item</button>
+            <div>
+                <button class="btn-add-top" onclick="generatePDF()" style="margin-right:5px">📄 PDF</button>
+                <button class="btn-add-top" onclick="addItem()">+ Item</button>
+            </div>
         </div>
         <div class="tabs">
             <button class="tab active" onclick="switchTab('counter')">Contador</button>
@@ -183,25 +178,36 @@
                 <button class="key" onclick="pk(4)">4</button><button class="key" onclick="pk(5)">5</button><button class="key" onclick="pk(6)">6</button>
                 <button class="key" onclick="pk(7)">7</button><button class="key" onclick="pk(8)">8</button><button class="key" onclick="pk(9)">9</button>
                 <button class="key" style="color:var(--danger)" onclick="pk('C')">C</button><button class="key" onclick="pk(0)">0</button><button class="key" onclick="pk('B')">⌫</button>
-                <button class="key key-ok" onclick="saveVal()">OK</button>
+                <button class="key key-ok" onclick="saveVal()">CONFIRMAR</button>
             </div>
         </div>
     </div>
 
+    <div id="pdf-template">
+        <div class="pdf-header">
+            <h2 style="margin:0; color: #4a6da7;">Relatório de Publicações</h2>
+            <p style="color:#666; margin-top:5px; font-size: 1.1em;">Novembro de 2025</p>
+        </div>
+        <table class="pdf-table">
+            <thead><tr><th>Item</th><th style="text-align:right">Quantidade</th></tr></thead>
+            <tbody id="pdf-body"></tbody>
+        </table>
+        <h3 style="text-align:right; margin-top:30px; color: #4a6da7;" id="pdf-total">Total Geral: 0</h3>
+    </div>
+
     <script>
         // Dados
-        let state = JSON.parse(localStorage.getItem('jwApp_v13')) || {
+        let state = JSON.parse(localStorage.getItem('jwApp_v14')) || {
             current: [{ id: 1, name: 'Revistas', count: 0 }, { id: 2, name: 'Folhetos', count: 0 }],
             history: []
         };
         let activeEditId = null; let tempVal = "";
 
         function save() {
-            localStorage.setItem('jwApp_v13', JSON.stringify(state));
+            localStorage.setItem('jwApp_v14', JSON.stringify(state));
             renderCounter(); renderHistory();
         }
 
-        // Navegação
         function switchTab(t) {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
@@ -211,7 +217,6 @@
             if(t==='counter') tabs[0].classList.add('active'); else tabs[1].classList.add('active');
         }
 
-        // Render Contador
         function renderCounter() {
             const grid = document.getElementById('grid'); grid.innerHTML = ''; let total = 0;
             state.current.forEach(i => {
@@ -231,7 +236,6 @@
             document.getElementById('grandTotal').innerText = total;
         }
 
-        // Render Histórico
         function renderHistory() {
             const list = document.getElementById('historyList'); list.innerHTML = '';
             if (state.history.length === 0) { list.innerHTML = '<div style="text-align:center; color:#555; margin-top:50px;">Histórico vazio.</div>'; return; }
@@ -245,3 +249,52 @@
                     <div class="hist-total">Total: ${entry.total}</div>`;
                 list.appendChild(div);
             });
+        }
+
+        function plusOne(id, d=1) { const i=state.current.find(x=>x.id===id); if(i){ i.count+=d; if(i.count<0)i.count=0; if(d>0 && navigator.vibrate) navigator.vibrate(30); save(); }}
+        function addItem() { const n=prompt("Nome:"); if(n) { state.current.push({id:Date.now(), name:n, count:0}); save(); }}
+        function delItem(id) { if(confirm("Apagar item?")) { state.current=state.current.filter(x=>x.id!==id); save(); }}
+        
+        function saveToHistory() {
+            const tot = state.current.reduce((a,b)=>a+b.count,0);
+            if(tot===0) { alert("Contador zerado."); return; }
+            if(confirm("Salvar no histórico e zerar contador?")) {
+                state.history.push({ date: new Date().toLocaleString('pt-PT').slice(0,16), total: tot, items: JSON.parse(JSON.stringify(state.current)) });
+                state.current.forEach(i=>i.count=0); save(); switchTab('history');
+            }
+        }
+        function delHist(idx) { if(confirm("Apagar registro?")) { state.history.splice(idx, 1); save(); }}
+
+        // PDF Generation
+        function generatePDF() {
+            const body = document.getElementById('pdf-body'); body.innerHTML=''; let total=0;
+            const active = state.current.filter(i => i.count > 0);
+            if(active.length===0) { alert('Contador vazio. Adicione números antes de gerar o PDF.'); return; }
+            active.forEach(i => { total+=i.count; body.innerHTML+=`<tr><td>${i.name}</td><td style="text-align:right; font-weight:bold">${i.count}</td></tr>`; });
+            document.getElementById('pdf-total').innerText='Total Geral: '+total;
+            const el = document.getElementById('pdf-template'); el.style.display='block';
+            html2pdf().set({ margin:10, filename:'Relatorio_Novembro_2025.pdf', image:{type:'jpeg',quality:0.99}, html2canvas:{scale:2}, jsPDF:{unit:'mm',format:'a4'} }).from(el).save().then(() => el.style.display='none');
+        }
+
+        // Numpad Logic
+        function openPad(id, e) { e.stopPropagation(); activeEditId=id; tempVal=state.current.find(x=>x.id===id).count.toString(); document.getElementById('numScreen').innerText=tempVal; document.getElementById('modal').style.display='flex'; }
+        function closeModal() { document.getElementById('modal').style.display='none'; }
+        function pk(k) {
+            if(k==='C') tempVal='0'; else if(k==='B') { tempVal=tempVal.slice(0,-1); if(tempVal==='') tempVal='0'; }
+            else { if(tempVal==='0') tempVal=k.toString(); else tempVal+=k.toString(); }
+            document.getElementById('numScreen').innerText=tempVal;
+        }
+        function saveVal() { const i=state.current.find(x=>x.id===activeEditId); if(i){ i.count=parseInt(tempVal); save(); } closeModal(); }
+
+        renderCounter(); renderHistory();
+    </script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js')
+            .then(() => console.log('Service Worker Registrado!'))
+            .catch((error) => console.log('Erro SW:', error));
+        }
+    </script>
+</body>
+</html>
